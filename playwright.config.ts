@@ -55,7 +55,7 @@ export default defineConfig({
 
       outputFolder: `reports/html-report-${timestamp}`,    
 
-      open: 'always'  }] ],
+      open: 'never'  }] ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 
