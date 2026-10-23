@@ -100,7 +100,7 @@ export default defineConfig({
 
  
 
-   /* {
+   {
 
       name: 'firefox',
 
@@ -116,7 +116,7 @@ export default defineConfig({
 
       use: { ...devices['Desktop Safari'] },
 
-    },*/
+    },
 
  
 
