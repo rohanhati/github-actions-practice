@@ -1,0 +1,19 @@
+{
+  "credentials": {
+    "username": "Admin",
+    "password": "admin123"
+  },
+  "expected": {
+    "url": "https://opensource-demo.orangehrmlive.com/web/index.php/leave/viewLeaveList",
+    "heading": "Leave",
+    "sections": [
+      "Leave List",
+      "Employee Name",
+      "From Date",
+      "Last Date",
+      "Show Leave with Status",
+      "Leave Type",
+      "Sub Unit"
+    ]
+  }
+}
