@@ -3,7 +3,7 @@ import { OrangeHrmLoginPage } from '../src/pages/OrangeHrmLoginPage';
 import leaveSectionData from './data/leave-section.json';
 
 test.describe('OrangeHRM Leave sections', () => {
-  test('Admin can view all Leave List sections @smoke @critical', async ({ page }) => {
+  test('Admin can view all Leave List sections @critical', async ({ page }) => {
     const loginPage = new OrangeHrmLoginPage(page);
 
     const dashboardPage = await test.step('Log in as the OrangeHRM administrator', async () => {

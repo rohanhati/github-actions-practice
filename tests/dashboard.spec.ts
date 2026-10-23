@@ -3,7 +3,7 @@ import { OrangeHrmLoginPage } from '../src/pages/OrangeHrmLoginPage';
 import dashboardData from './data/dashboard.json';
 
 test.describe('OrangeHRM dashboard', () => {
-  test('Admin sees the dashboard and left navigation entries @smoke @critical', async ({ page }) => {
+  test('Admin sees the dashboard and left navigation entries @smoke', async ({ page }) => {
     const loginPage = new OrangeHrmLoginPage(page);
 
     const dashboardPage = await test.step('Log in as the OrangeHRM administrator', async () => {
