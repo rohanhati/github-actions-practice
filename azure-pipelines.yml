@@ -1,36 +1,42 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-# trigger:
-# - main
-schedules:
-- cron: "07 15 * * *"
-  displayName: "Daily 20:37(ITC) pipeline trigger"
+trigger:
   branches:
     include:
-      - main
-  always: true
+      - docker-setup
 
 pool:
   vmImage: ubuntu-latest
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSource: 'spec'
-    versionSpec: '20.x'
 
-- script: npm ci
-  displayName: 'Install Playwright Dependencies'
+# Checkout code
+- checkout: self
 
-- script: npx playwright install --with-deps
-  displayName: 'Install Playwright Browsers'
+# Verify Docker exists on hosted agent
+- script: |
+    docker --version
+  displayName: 'Verify Docker Installation'
 
-- script: npx playwright test --project=$(browser) --grep=$(tagName)
-  displayName: 'Start execution'
-  
+
+# Pull Playwright Docker Image
+- script: |
+    docker pull mcr.microsoft.com/playwright:v1.64.1-noble
+  displayName: 'Pull Playwright Docker Image'
+
+
+# Run tests inside container
+- script: |
+    docker run --rm \
+      -v $(System.DefaultWorkingDirectory):/work \
+      -w /work \
+      mcr.microsoft.com/playwright:v1.64.1-noble \
+      bash -c "
+        npm ci &&
+        npx playwright test --project=$(browser) --grep=$(tagName)
+      "
+  displayName: 'Run Playwright Tests in Docker'
+
+
+# Publish Playwright Report
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: 'reports'
@@ -38,9 +44,11 @@ steps:
     publishLocation: 'pipeline'
   condition: always()
 
+
+# Publish JUnit Test Results
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**/junitReport.xml'
-    testRunTitle: 'Junit Reporter'
+    testRunTitle: 'Playwright Docker Execution'
   condition: always()

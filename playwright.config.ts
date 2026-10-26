@@ -51,14 +51,15 @@ export default defineConfig({
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
 
-      // reporter: [   ['html', {    
+      reporter: [   ['html', {    
 
-      // outputFolder: `reports/html-report-${timestamp}`,    
+      outputFolder: `reports/html-report-${timestamp}`,    
 
-      // open: 'never'  }] ],
+      open: 'never'  }],
 
     // JUnit reporter
-    reporter:[['html', {open:'never'}],['junit',{outputFile:'reports/JUnit/junitReport.xml'}]],
+    // reporter:
+    ['html', {open:'never'}],['junit',{outputFile:'reports/JUnit/junitReport.xml'}]],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 
