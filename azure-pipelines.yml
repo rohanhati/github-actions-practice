@@ -27,7 +27,7 @@ steps:
       -w /work \
       mcr.microsoft.com/playwright:v1.64.1-noble \
       bash -c "
-        xvfb-run -a npx playwright test
+        xvfb-run -a npx playwright test --project=$(browser) --grep=$(tagName)
       "
   displayName: 'Run Headed Tests'
 
