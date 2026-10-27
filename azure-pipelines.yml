@@ -22,12 +22,15 @@ steps:
 
 - script: |
     docker run --rm \
-      -e HEADLESS=$(HEADLESS) \
+      --e DISPLAY=:0 \
+      -e HEADLESS=false \
+      -v /tmp/.X11-unix:/tmp/.X11-unix \
       -v $(Build.SourcesDirectory):/work \
       -w /work \
       mcr.microsoft.com/playwright:v1.64.1-noble \
       bash -c "
-        xvfb-run -a npx playwright test --project=$(browser) --grep=$(tagName)
+        npm ci
+        npx playwright test --project=$(browser) --grep=$(tagName)
       "
   displayName: 'Run Headed Tests'
 

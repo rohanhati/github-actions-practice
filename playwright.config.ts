@@ -101,23 +101,23 @@ export default defineConfig({
 
  
 
-  //  {
+   {
 
-  //     name: 'firefox',
+      name: 'firefox',
 
-  //     use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'] },
 
-  //   },
+    },
 
  
 
-  //   {
+    {
 
-  //     name: 'webkit',
+      name: 'webkit',
 
-  //     use: { ...devices['Desktop Safari'] },
+      use: { ...devices['Desktop Safari'] },
 
-  //   },
+    },
 
  
 
