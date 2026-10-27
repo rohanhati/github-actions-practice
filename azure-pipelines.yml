@@ -4,7 +4,7 @@ trigger:
       - docker-setup
 
 pool:
-  name: PlaywrightDockerPool
+  name: VmDockerPool
 
 steps:
 
