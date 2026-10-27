@@ -3,48 +3,35 @@ trigger:
     include:
       - docker-setup
 
-# schedules:
-# - cron: "07 15 * * *"
-#   displayName: "Daily 20:37(ITC) pipeline trigger"
-#   branches:
-#     include:
-#       - main
-#   always: true
-
 pool:
-  vmImage: ubuntu-latest
+  name: PlaywrightDockerPool
 
 steps:
 
-# Checkout code
 - checkout: self
 
-# Verify Docker exists on hosted agent
 - script: |
     docker --version
-  displayName: 'Verify Docker Installation'
+  displayName: 'Verify Docker'
 
 
-# Pull Playwright Docker Image
 - script: |
     docker pull mcr.microsoft.com/playwright:v1.64.1-noble
-  displayName: 'Pull Playwright Docker Image'
+  displayName: 'Pull Playwright Image'
 
 
-# Run tests inside container
 - script: |
     docker run --rm \
-      -v $(System.DefaultWorkingDirectory):/work \
+      -v $(Build.SourcesDirectory):/work \
       -w /work \
       mcr.microsoft.com/playwright:v1.64.1-noble \
       bash -c "
-        npm ci &&
+        npm ci
         npx playwright test --project=$(browser) --grep=$(tagName)
       "
-  displayName: 'Run Playwright Tests in Docker'
+  displayName: 'Run Playwright Tests In Docker'
 
 
-# Publish Playwright Report
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: 'reports'
@@ -53,7 +40,6 @@ steps:
   condition: always()
 
 
-# Publish JUnit Test Results
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
