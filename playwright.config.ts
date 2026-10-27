@@ -69,7 +69,7 @@ export default defineConfig({
 
     // baseURL: 'http://localhost:3000',
 
-      headless: true,                 // Opens the browser during execution.
+      headless: false,                 // Opens the browser during execution.
 
       screenshot: 'only-on-failure',   // Takes a screenshot only if a test fails.
 
@@ -101,23 +101,23 @@ export default defineConfig({
 
  
 
-   {
+  //  {
 
-      name: 'firefox',
+  //     name: 'firefox',
 
-      use: { ...devices['Desktop Firefox'] },
+  //     use: { ...devices['Desktop Firefox'] },
 
-    },
+  //   },
 
  
 
-    {
+  //   {
 
-      name: 'webkit',
+  //     name: 'webkit',
 
-      use: { ...devices['Desktop Safari'] },
+  //     use: { ...devices['Desktop Safari'] },
 
-    },
+  //   },
 
  
 

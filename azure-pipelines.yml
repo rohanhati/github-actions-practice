@@ -22,14 +22,14 @@ steps:
 
 - script: |
     docker run --rm \
+      -e HEADLESS=false \
       -v $(Build.SourcesDirectory):/work \
       -w /work \
       mcr.microsoft.com/playwright:v1.64.1-noble \
       bash -c "
-        npm ci
-        npx playwright test --project=$(browser) --grep=$(tagName)
+        xvfb-run -a npx playwright test
       "
-  displayName: 'Run Playwright Tests In Docker'
+  displayName: 'Run Headed Tests'
 
 
 - task: PublishPipelineArtifact@1
