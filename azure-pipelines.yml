@@ -44,19 +44,18 @@ steps:
     echo "XAUTHORITY=$XAUTHORITY"
 
     docker run --rm \
-      -e DISPLAY=$DISPLAY \
-      -e XAUTHORITY=$XAUTHORITY \
-      -v /tmp/.X11-unix:/tmp/.X11-unix \
-      -v $XAUTHORITY:$XAUTHORITY:ro \
-      mcr.microsoft.com/playwright:v1.64.1-noble \
-      bash -c "
-          echo DISPLAY=\$DISPLAY
-          echo XAUTHORITY=\$XAUTHORITY
-
-          find /ms-playwright -name chrome | head -1
-
-          sleep 30
-      "
+    -e DISPLAY=$DISPLAY \
+    -e XAUTHORITY=$XAUTHORITY \
+    -e HEADLESS=false \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v $XAUTHORITY:$XAUTHORITY:ro \
+    -v $(Build.SourcesDirectory):/work \
+    -w /work \
+    mcr.microsoft.com/playwright:v1.64.1-noble \
+    bash -c "
+      npm ci &&
+      npx playwright test --project=$(browser) --grep=$(tagName)
+    "
   displayName: 'Verify Docker GUI Access'
 
 #
