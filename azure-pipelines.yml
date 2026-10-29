@@ -3,36 +3,42 @@ trigger:
     include:
       - docker-setup
 
+parameters:
+- name: executionMode
+  displayName: Execution Mode
+  type: string
+  default: headless
+  values:
+    - headless
+    - headed
+
+variables:
+  ${{ if eq(parameters.executionMode, 'headless') }}:
+    agentPool: 'VmDockerPool'
+    HEADLESS: 'true'
+
+  ${{ if eq(parameters.executionMode, 'headed') }}:
+    agentPool: 'VmDockerHeadedPool'
+    HEADLESS: 'false'
+
 pool:
-  name: VmDockerPool
+  name: $(agentPool)
 
 steps:
 
-# Checkout code
 - checkout: self
 
-# Verify Docker
 - script: |
     docker --version
   displayName: 'Verify Docker'
 
-# Verify Display
-- script: |
-    echo "DISPLAY=$DISPLAY"
-    who
-  displayName: 'Verify Desktop Session'
-
-# Allow Docker to access Ubuntu Desktop display
-- script: |
-    xhost +local:
-  displayName: 'Enable X11 Access'
-
-# Pull Playwright Image
 - script: |
     docker pull mcr.microsoft.com/playwright:v1.64.1-noble
   displayName: 'Pull Playwright Image'
 
-# Execute Tests
+#
+# Headed Run
+#
 - script: |
     docker run --rm \
       -e DISPLAY=:0 \
@@ -43,12 +49,27 @@ steps:
       mcr.microsoft.com/playwright:v1.64.1-noble \
       bash -c "
         npm ci
-        echo HEADLESS=\$HEADLESS
         npx playwright test --project=$(browser) --grep=$(tagName)
       "
-  displayName: 'Run Playwright Tests In Docker'
+  condition: eq('${{ parameters.executionMode }}','headed')
+  displayName: 'Run Playwright Tests (Headed)'
 
-# Publish HTML Report
+#
+# Headless Run
+#
+- script: |
+    docker run --rm \
+      -e HEADLESS=$(HEADLESS) \
+      -v $(Build.SourcesDirectory):/work \
+      -w /work \
+      mcr.microsoft.com/playwright:v1.64.1-noble \
+      bash -c "
+        npm ci
+        npx playwright test --project=$(browser) --grep=$(tagName)
+      "
+  condition: eq('${{ parameters.executionMode }}','headless')
+  displayName: 'Run Playwright Tests (Headless)'
+
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: 'reports'
@@ -56,10 +77,9 @@ steps:
     publishLocation: 'pipeline'
   condition: always()
 
-# Publish JUnit Results
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**/junitReport.xml'
-    testRunTitle: 'Playwright Docker Execution'
+    testRunTitle: 'Playwright Execution'
   condition: always()
