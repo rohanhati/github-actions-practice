@@ -40,19 +40,12 @@ steps:
 # Headed Run
 #
 - script: |
-    docker run --rm \
-      -e DISPLAY=:0 \
-      -e HEADLESS=$(HEADLESS) \
-      -v /tmp/.X11-unix:/tmp/.X11-unix \
-      -v $(Build.SourcesDirectory):/work \
-      -w /work \
-      mcr.microsoft.com/playwright:v1.64.1-noble \
-      bash -c "
-        npm ci
-        npx playwright test --project=$(browser) --grep=$(tagName)
-      "
-  condition: eq('${{ parameters.executionMode }}','headed')
-  displayName: 'Run Playwright Tests (Headed)'
+    echo "DISPLAY=$DISPLAY"
+    echo "XAUTHORITY=$XAUTHORITY"
+    whoami
+    pwd
+    xhost
+  displayName: 'Debug Headed Environment'
 
 #
 # Headless Run
