@@ -4,36 +4,25 @@ trigger:
       - main
 
 parameters:
-
-# Where to run
-- name: executionTarget
-  displayName: Execution Target
+- name: executionEnvironment
+  displayName: Execution Environment
   type: string
   default: local
   values:
     - local
-    - vm
-
-# VM execution mode
-- name: executionMode
-  displayName: VM Execution Mode
-  type: string
-  default: headless
-  values:
-    - headless
-    - headed
+    - vm-headless
+    - vm-headed
 
 jobs:
 
-#################################################
-# LOCAL EXECUTION
-#################################################
+#########################################################
+# LOCAL EXECUTION (Microsoft Hosted Agent)
+#########################################################
 
 - job: LocalExecution
-
   displayName: 'Run in Microsoft Hosted Agent'
 
-  condition: eq('${{ parameters.executionTarget }}', 'local')
+  condition: eq('${{ parameters.executionEnvironment }}', 'local')
 
   pool:
     vmImage: ubuntu-latest
@@ -75,18 +64,14 @@ jobs:
       testRunTitle: 'Playwright Local Execution'
     condition: always()
 
-#################################################
-# VM HEADLESS
-#################################################
+#########################################################
+# VM HEADLESS EXECUTION
+#########################################################
 
 - job: VmHeadlessExecution
-
   displayName: 'Run on VM (Headless)'
 
-  condition: and(
-    eq('${{ parameters.executionTarget }}', 'vm'),
-    eq('${{ parameters.executionMode }}', 'headless')
-    )
+  condition: eq('${{ parameters.executionEnvironment }}', 'vm-headless')
 
   pool:
     name: VmDockerPool
@@ -129,18 +114,14 @@ jobs:
       testRunTitle: 'Playwright VM Headless Execution'
     condition: always()
 
-#################################################
-# VM HEADED
-#################################################
+#########################################################
+# VM HEADED EXECUTION
+#########################################################
 
 - job: VmHeadedExecution
-
   displayName: 'Run on VM (Headed)'
 
-  condition: and(
-    eq('${{ parameters.executionTarget }}', 'vm'),
-    eq('${{ parameters.executionMode }}', 'headed')
-    )
+  condition: eq('${{ parameters.executionEnvironment }}', 'vm-headed')
 
   pool:
     name: VmDockerHeadedPool
