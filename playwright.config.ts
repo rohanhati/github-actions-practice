@@ -69,7 +69,7 @@ export default defineConfig({
 
     // baseURL: 'http://localhost:3000',
 
-      headless: true,                 // Opens the browser during execution.
+      headless: process.env.HEADLESS !== 'false',                 // Opens the browser during execution.
 
       screenshot: 'only-on-failure',   // Takes a screenshot only if a test fails.
 
