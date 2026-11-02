@@ -3,60 +3,189 @@ trigger:
     include:
       - main
 
-# schedules:
-# - cron: "07 15 * * *"
-#   displayName: "Daily 20:37(ITC) pipeline trigger"
-#   branches:
-#     include:
-#       - main
-#   always: true
+parameters:
 
-pool:
-  vmImage: ubuntu-latest
+# Where to run
+- name: executionTarget
+  displayName: Execution Target
+  type: string
+  default: local
+  values:
+    - local
+    - vm
 
-steps:
+# VM execution mode
+- name: executionMode
+  displayName: VM Execution Mode
+  type: string
+  default: headless
+  values:
+    - headless
+    - headed
 
-# Checkout code
-- checkout: self
+jobs:
 
-# Verify Docker exists on hosted agent
-- script: |
-    docker --version
-  displayName: 'Verify Docker Installation'
+#################################################
+# LOCAL EXECUTION
+#################################################
 
+- job: LocalExecution
 
-# Pull Playwright Docker Image
-- script: |
-    docker pull mcr.microsoft.com/playwright:v1.64.1-noble
-  displayName: 'Pull Playwright Docker Image'
+  displayName: 'Run in Microsoft Hosted Agent'
 
+  condition: eq('${{ parameters.executionTarget }}', 'local')
 
-# Run tests inside container
-- script: |
-    docker run --rm \
-      -v $(System.DefaultWorkingDirectory):/work \
-      -w /work \
-      mcr.microsoft.com/playwright:v1.64.1-noble \
-      bash -c "
-        npm ci &&
-        npx playwright test --project=$(browser) --grep=$(tagName)
-      "
-  displayName: 'Run Playwright Tests in Docker'
+  pool:
+    vmImage: ubuntu-latest
 
+  steps:
 
-# Publish Playwright Report
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: 'reports'
-    artifact: 'Playwright HTML Report'
-    publishLocation: 'pipeline'
-  condition: always()
+  - checkout: self
 
+  - script: |
+      docker --version
+    displayName: 'Verify Docker'
 
-# Publish JUnit Test Results
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**/junitReport.xml'
-    testRunTitle: 'Playwright Docker Execution'
-  condition: always()
+  - script: |
+      docker pull mcr.microsoft.com/playwright:v1.64.1-noble
+    displayName: 'Pull Playwright Image'
+
+  - script: |
+      docker run --rm \
+        -v $(System.DefaultWorkingDirectory):/work \
+        -w /work \
+        mcr.microsoft.com/playwright:v1.64.1-noble \
+        bash -c "
+          npm ci &&
+          npx playwright test --project=$(browser) --grep=$(tagName)
+        "
+    displayName: 'Run Playwright Tests (Local)'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'reports'
+      artifact: 'Playwright HTML Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/junitReport.xml'
+      testRunTitle: 'Playwright Local Execution'
+    condition: always()
+
+#################################################
+# VM HEADLESS
+#################################################
+
+- job: VmHeadlessExecution
+
+  displayName: 'Run on VM (Headless)'
+
+  condition: and(
+    eq('${{ parameters.executionTarget }}', 'vm'),
+    eq('${{ parameters.executionMode }}', 'headless')
+    )
+
+  pool:
+    name: VmDockerPool
+
+  steps:
+
+  - checkout: self
+
+  - script: |
+      docker --version
+    displayName: 'Verify Docker'
+
+  - script: |
+      docker pull mcr.microsoft.com/playwright:v1.64.1-noble
+    displayName: 'Pull Playwright Image'
+
+  - script: |
+      docker run --rm \
+        -e HEADLESS=true \
+        -v $(Build.SourcesDirectory):/work \
+        -w /work \
+        mcr.microsoft.com/playwright:v1.64.1-noble \
+        bash -c "
+          npm ci &&
+          npx playwright test --project=$(browser) --grep=$(tagName)
+        "
+    displayName: 'Run Playwright Tests (VM Headless)'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'reports'
+      artifact: 'Playwright HTML Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/junitReport.xml'
+      testRunTitle: 'Playwright VM Headless Execution'
+    condition: always()
+
+#################################################
+# VM HEADED
+#################################################
+
+- job: VmHeadedExecution
+
+  displayName: 'Run on VM (Headed)'
+
+  condition: and(
+    eq('${{ parameters.executionTarget }}', 'vm'),
+    eq('${{ parameters.executionMode }}', 'headed')
+    )
+
+  pool:
+    name: VmDockerHeadedPool
+
+  steps:
+
+  - checkout: self
+
+  - script: |
+      docker --version
+    displayName: 'Verify Docker'
+
+  - script: |
+      docker pull mcr.microsoft.com/playwright:v1.64.1-noble
+    displayName: 'Pull Playwright Image'
+
+  - script: |
+      echo "DISPLAY=$DISPLAY"
+      echo "XAUTHORITY=$XAUTHORITY"
+
+      docker run --rm \
+        -e DISPLAY=$DISPLAY \
+        -e XAUTHORITY=$XAUTHORITY \
+        -e HEADLESS=false \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -v "$XAUTHORITY":"$XAUTHORITY":ro \
+        -v $(Build.SourcesDirectory):/work \
+        -w /work \
+        mcr.microsoft.com/playwright:v1.64.1-noble \
+        bash -c "
+          npm ci &&
+          npx playwright test --project=$(browser) --grep=$(tagName)
+        "
+    displayName: 'Run Playwright Tests (VM Headed)'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'reports'
+      artifact: 'Playwright HTML Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/junitReport.xml'
+      testRunTitle: 'Playwright VM Headed Execution'
+    condition: always()
