@@ -1,26 +1,77 @@
 trigger:
   branches:
     include:
-      - docker-setup
+      - main
 
 parameters:
-- name: executionMode
-  displayName: Execution Mode
+- name: executionEnvironment
+  displayName: Execution Environment
   type: string
-  default: headless
+  default: local
   values:
-    - headless
-    - headed
-
-####################################################
-# HEADLESS JOB
-####################################################
+    - local
+    - vm-headless
+    - vm-headed
 
 jobs:
 
-- job: HeadlessExecution
+#########################################################
+# LOCAL EXECUTION (Microsoft Hosted Agent)
+#########################################################
 
-  condition: eq('${{ parameters.executionMode }}', 'headless')
+- job: LocalExecution
+  displayName: 'Run in Microsoft Hosted Agent'
+
+  condition: eq('${{ parameters.executionEnvironment }}', 'local')
+
+  pool:
+    vmImage: ubuntu-latest
+
+  steps:
+
+  - checkout: self
+
+  - script: |
+      docker --version
+    displayName: 'Verify Docker'
+
+  - script: |
+      docker pull mcr.microsoft.com/playwright:v1.64.1-noble
+    displayName: 'Pull Playwright Image'
+
+  - script: |
+      docker run --rm \
+        -v $(System.DefaultWorkingDirectory):/work \
+        -w /work \
+        mcr.microsoft.com/playwright:v1.64.1-noble \
+        bash -c "
+          npm ci &&
+          npx playwright test --project=$(browser) --grep=$(tagName)
+        "
+    displayName: 'Run Playwright Tests (Local)'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'reports'
+      artifact: 'Playwright HTML Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/junitReport.xml'
+      testRunTitle: 'Playwright Local Execution'
+    condition: always()
+
+#########################################################
+# VM HEADLESS EXECUTION
+#########################################################
+
+- job: VmHeadlessExecution
+  displayName: 'Run on VM (Headless)'
+
+  condition: eq('${{ parameters.executionEnvironment }}', 'vm-headless')
 
   pool:
     name: VmDockerPool
@@ -29,7 +80,8 @@ jobs:
 
   - checkout: self
 
-  - script: docker --version
+  - script: |
+      docker --version
     displayName: 'Verify Docker'
 
   - script: |
@@ -46,7 +98,7 @@ jobs:
           npm ci &&
           npx playwright test --project=$(browser) --grep=$(tagName)
         "
-    displayName: 'Run Playwright Tests (Headless)'
+    displayName: 'Run Playwright Tests (VM Headless)'
 
   - task: PublishPipelineArtifact@1
     inputs:
@@ -59,16 +111,17 @@ jobs:
     inputs:
       testResultsFormat: 'JUnit'
       testResultsFiles: '**/junitReport.xml'
-      testRunTitle: 'Playwright Headless Execution'
+      testRunTitle: 'Playwright VM Headless Execution'
     condition: always()
 
-####################################################
-# HEADED JOB
-####################################################
+#########################################################
+# VM HEADED EXECUTION
+#########################################################
 
-- job: HeadedExecution
+- job: VmHeadedExecution
+  displayName: 'Run on VM (Headed)'
 
-  condition: eq('${{ parameters.executionMode }}', 'headed')
+  condition: eq('${{ parameters.executionEnvironment }}', 'vm-headed')
 
   pool:
     name: VmDockerHeadedPool
@@ -77,7 +130,8 @@ jobs:
 
   - checkout: self
 
-  - script: docker --version
+  - script: |
+      docker --version
     displayName: 'Verify Docker'
 
   - script: |
@@ -101,7 +155,7 @@ jobs:
           npm ci &&
           npx playwright test --project=$(browser) --grep=$(tagName)
         "
-    displayName: 'Run Playwright Tests (Headed)'
+    displayName: 'Run Playwright Tests (VM Headed)'
 
   - task: PublishPipelineArtifact@1
     inputs:
@@ -114,5 +168,5 @@ jobs:
     inputs:
       testResultsFormat: 'JUnit'
       testResultsFiles: '**/junitReport.xml'
-      testRunTitle: 'Playwright Headed Execution'
+      testRunTitle: 'Playwright VM Headed Execution'
     condition: always()
