@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - docker-setup
+      - main
 
 # schedules:
 # - cron: "07 15 * * *"
