@@ -50,6 +50,12 @@ jobs:
         "
     displayName: 'Run Playwright Tests (Local)'
 
+  - script: |
+      npm install -g allure-commandline
+      allure generate allure-results -o allure-report --clean
+    displayName: 'Generate Allure HTML Report'
+    condition: always()
+
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: 'reports'
@@ -57,10 +63,17 @@ jobs:
       publishLocation: 'pipeline'
     condition: always()
 
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'allure-report'
+      artifact: 'Allure Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit'
-      testResultsFiles: '**/junitReport.xml'
+      testResultsFiles: 'reports/JUnit/junitReport.xml'
       testRunTitle: 'Playwright Local Execution'
     condition: always()
 
@@ -100,6 +113,12 @@ jobs:
         "
     displayName: 'Run Playwright Tests (VM Headless)'
 
+  - script: |
+      npm install -g allure-commandline
+      allure generate allure-results -o allure-report --clean
+    displayName: 'Generate Allure HTML Report'
+    condition: always()
+
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: 'reports'
@@ -107,10 +126,17 @@ jobs:
       publishLocation: 'pipeline'
     condition: always()
 
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'allure-report'
+      artifact: 'Allure Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit'
-      testResultsFiles: '**/junitReport.xml'
+      testResultsFiles: 'reports/JUnit/junitReport.xml'
       testRunTitle: 'Playwright VM Headless Execution'
     condition: always()
 
@@ -157,6 +183,12 @@ jobs:
         "
     displayName: 'Run Playwright Tests (VM Headed)'
 
+  - script: |
+      npm install -g allure-commandline
+      allure generate allure-results -o allure-report --clean
+    displayName: 'Generate Allure HTML Report'
+    condition: always()
+
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: 'reports'
@@ -164,9 +196,16 @@ jobs:
       publishLocation: 'pipeline'
     condition: always()
 
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'allure-report'
+      artifact: 'Allure Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit'
-      testResultsFiles: '**/junitReport.xml'
+      testResultsFiles: 'reports/JUnit/junitReport.xml'
       testRunTitle: 'Playwright VM Headed Execution'
     condition: always()
