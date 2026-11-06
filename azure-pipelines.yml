@@ -219,7 +219,7 @@ jobs:
 
   displayName: 'Run on Pankaj Laptop (Headless)'
 
-  condition: eq('${{ parameters.executionEnvironment }}', 'colleague-headless')
+  condition: eq('${{ parameters.executionEnvironment }}', 'Pankaj-headless')
 
   pool:
     name: Default
