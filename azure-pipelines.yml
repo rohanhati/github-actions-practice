@@ -12,6 +12,7 @@ parameters:
     - local
     - vm-headless
     - vm-headed
+    - Pankaj-headless
 
 jobs:
 
@@ -208,4 +209,68 @@ jobs:
       testResultsFormat: 'JUnit'
       testResultsFiles: 'reports/JUnit/junitReport.xml'
       testRunTitle: 'Playwright VM Headed Execution'
+    condition: always()
+
+#########################################################
+# COLLEAGUE HEADLESS EXECUTION
+#########################################################
+
+- job: PankajHeadlessExecution
+
+  displayName: 'Run on Pankaj Laptop (Headless)'
+
+  condition: eq('${{ parameters.executionEnvironment }}', 'colleague-headless')
+
+  pool:
+    name: Default
+
+  steps:
+
+  - checkout: self
+
+  - script: |
+      docker --version
+    displayName: 'Verify Docker'
+
+  - script: |
+      docker pull mcr.microsoft.com/playwright:v1.64.1-noble
+    displayName: 'Pull Playwright Image'
+
+  - script: |
+      docker run --rm \
+        -e HEADLESS=true \
+        -v $(Build.SourcesDirectory):/work \
+        -w /work \
+        mcr.microsoft.com/playwright:v1.64.1-noble \
+        bash -c "
+          npm ci &&
+          npx playwright test --project=$(browser) --grep=$(tagName)
+        "
+    displayName: 'Run Playwright Tests (Pankaj Headless)'
+
+  - script: |
+      npm install -g allure-commandline
+      allure generate allure-results -o allure-report --clean
+    displayName: 'Generate Allure HTML Report'
+    condition: always()
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'reports'
+      artifact: 'Playwright HTML Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'allure-report'
+      artifact: 'Allure Report'
+      publishLocation: 'pipeline'
+    condition: always()
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'reports/JUnit/junitReport.xml'
+      testRunTitle: 'Playwright Colleague Headless Execution'
     condition: always()
