@@ -1,0 +1,14 @@
+{
+  "credentials": {
+    "username": "Admin",
+    "password": "admin123"
+  },
+  "expected": {
+    "url": "https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index",
+    "heading": "Dashboard",
+    "leftPanelLinks": [
+      "Admin",
+      "Leave"
+    ]
+  }
+}
